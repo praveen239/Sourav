@@ -1,3 +1,0 @@
-apiUrl = "https://sndbx.reltio.com/reltio/api/sy01chd01"
-username="abir.bhattacharya@reltio.com"
-password="abir"

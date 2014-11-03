@@ -21,7 +21,7 @@ public class CreateReport {
     private static String password = null;
     private static String token = null;
     private static String totalReport2 = null;
-    private static String totalUpdatedByAllUser=null;
+    private static String totalUpdatedByAllUser = null;
     private static Gson gson = new Gson();
     private static Map<String, String> dataReport3_4 = new HashMap<String, String>();
     private static Map<String, String> dataReport2 = new HashMap<String, String>();
@@ -33,7 +33,7 @@ public class CreateReport {
     private static Properties configProperties = new Properties();
     private static Properties usersProperties = new Properties();
     private static Properties dateRangeProperties = new Properties();
-    private static String saveReportSource=null;
+    private static String saveReportSource = null;
 
     private static void init(String srcConfig, String srcUserList, String srcDateRange) throws FileNotFoundException, IOException {
         loadProperties(configProperties, srcConfig);
@@ -53,21 +53,21 @@ public class CreateReport {
         apiUrl = configProperties.getProperty("apiUrl");
         username = configProperties.getProperty("username");
         password = configProperties.getProperty("password");
-        saveReportSource=configProperties.getProperty("saveFileSource");
-        boolean drRange=getDateRange();{
-        if(drRange==true){
-            
-        
-        boolean ret = getAccessToken(username, password);
-        System.out.println(ret + "   " + token);
-        if (ret) {
-            GenerateReport2(usersProperties, apiUrl, username, password);
-            GenerateReportOneThreeAndFour(usersProperties, apiUrl, username, password);
-        }
-        System.out.println("Program ended");
-    }else{
-            System.err.println("Check Yopur date range");
-        }
+        saveReportSource = configProperties.getProperty("saveFileSource");
+        boolean drRange = getDateRange();
+        {
+            if (drRange == true) {
+
+                boolean ret = getAccessToken(username, password);
+                System.out.println(ret + "   " + token);
+                if (ret) {
+                    GenerateReport2(usersProperties, apiUrl, username, password);
+                    GenerateReportOneThreeAndFour(usersProperties, apiUrl, username, password);
+                }
+                System.out.println("Program ended");
+            } else {
+                System.err.println("Check Your Date Range");
+            }
         }
     }
 
@@ -75,19 +75,26 @@ public class CreateReport {
         InputStream config = new FileInputStream(fileName);
         properties.load(config);
     }
-public static boolean getDateRange() throws ParseException{
-    String Date1 = dateRangeProperties.getProperty("startDate");
-            String Date2 = dateRangeProperties.getProperty("endDate");
-            Date dr = new SimpleDateFormat("MM/dd/yyyy").parse(Date1);
-            Date dr1 = new SimpleDateFormat("MM/dd/yyyy").parse(Date2);
-            if(dr.before(dr1)){
-                return true;
-            }
-            else {
-                return  false;
-            }
+
+    public static boolean getDateRange() {
+        String date1 = dateRangeProperties.getProperty("startDate");
+        String date2 = dateRangeProperties.getProperty("endDate");
+        try{
+        Date dr = new SimpleDateFormat("MM/dd/yyyy").parse(date1);
+        Date dr1 = new SimpleDateFormat("MM/dd/yyyy").parse(date2);
+       
+        if (dr.before(dr1)) {
+            return true;
+        } else {
+            return false;
+        }
+        }catch(ParseException e){
+            System.err.println("Invalid Date Type Should be MM/dd/YYYY");
+            return false;
             
-}
+        }
+    }
+
     public static void GenerateReportOneThreeAndFour(Properties usersFile, String apiUrl, String username, String password) throws ParseException {
 
         try {
@@ -97,12 +104,12 @@ public static boolean getDateRange() throws ParseException{
             String endDate = dateRangeProperties.getProperty("endDate");
             Date dr = new SimpleDateFormat("MM/dd/yyyy").parse(startDate);
             Date dr1 = new SimpleDateFormat("MM/dd/yyyy").parse(endDate);
+            
             Long start_date = dr.getTime();
             Long end_date = dr1.getTime();
-           
 
             Enumeration e = usersFile.propertyNames();
-            
+
             String url = generateUserSpecificFilter(e, usersFile);
 
             System.out.println(url);
@@ -137,8 +144,8 @@ public static boolean getDateRange() throws ParseException{
             System.out.println(" Report 4\n" + dataReport3_4);
             String urlReport1 = apiUrl + "/entities/_total?filter=" + URLEncoder.encode("equals(type,'configuration/entityTypes/SoldToCustomer') and (" + url + ") and range(updatedTime," + start_date + "," + end_date + ")", "utf-8");
             //String urlReport1 = apiUrl + "/entities/_total?filter=equals(type,'configuration/entityTypes/SoldToCustomer') and (" + url + ") and range(updatedTime," + start_date + "," + end_date + ")";
-            
-            System.out.println("ALL USER"+"  "+startDate+"   "+endDate+" "+urlReport1);
+
+            System.out.println("ALL USER" + "  " + startDate + "   " + endDate + " " + urlReport1);
             //https://sndbx.reltio.com/reltio/api/sy01chd01/entities/_total?filter=equals(type,'configuration/entityTypes/SoldToCustomer') and equals(attributes.EC_Audit_Status,'4') and range(updatedTime,1414348200000,1414521000000)
             //https://sndbx.reltio.com/reltio/api/sy01chd01/entities/_total?filter=equals(type,'configuration/entityTypes/SoldToCustomer') and equals(attributes.EC_Status,'2') and range(updatedTime,1414348200000,1414521000000)
             String initialResponse1 = dbScan(json1, urlReport1, username, password);
@@ -152,15 +159,15 @@ public static boolean getDateRange() throws ParseException{
 
             JsonObject responseToJsonObject1 = gson.fromJson(initialResponse1, JsonObject.class);
 
-             totalUpdatedByAllUser = responseToJsonObject1.get("total").getAsString();
+            totalUpdatedByAllUser = responseToJsonObject1.get("total").getAsString();
             String stDt = startDate.replaceAll("/", "");
             String enDt = endDate.replaceAll("/", "");
-            String outputFileName = saveReportSource+"/Report1_3_4From_" + stDt + "_To_" + enDt + ".csv";
+            String outputFileName = saveReportSource + "/Report1_3_4From_" + stDt + "_To_" + enDt + ".csv";
             String header = "Start Date," + startDate + "\n" + "End Date," + endDate + "\n" + "Total number of records updated by all data stewards" + ",";
             BufferedWriter outputFileWriter = new BufferedWriter(new FileWriter(outputFileName));
 
             saveReportOneThreeAndFourAsCsv(header, outputFileWriter);
-           } catch (IOException e1) {
+        } catch (IOException e1) {
             e1.printStackTrace();
         } catch (Exception exc) {
             exc.printStackTrace();
@@ -210,7 +217,7 @@ public static boolean getDateRange() throws ParseException{
             StringBuilder tot = new StringBuilder();
             String stDt = startDate.replaceAll("/", "");
             String enDt = endDate.replaceAll("/", "");
-            String outputFileName = saveReportSource+"/Report2_From_" + stDt + "_To_" + enDt + ".csv";
+            String outputFileName = saveReportSource + "/Report2_From_" + stDt + "_To_" + enDt + ".csv";
 
             System.out.println(startDate + "   " + endDate);
             BufferedWriter outputFileWriter = new BufferedWriter(new FileWriter(outputFileName));
@@ -269,10 +276,10 @@ public static boolean getDateRange() throws ParseException{
         }
     }
 
-    public static void saveReportOneThreeAndFourAsCsv(String header,  BufferedWriter outputFileWriter) throws IOException {
+    public static void saveReportOneThreeAndFourAsCsv(String header, BufferedWriter outputFileWriter) throws IOException {
 
         outputFileWriter.write(header);
-        outputFileWriter.write(totalUpdatedByAllUser+ "\n");
+        outputFileWriter.write(totalUpdatedByAllUser + "\n");
         for (Map.Entry<String, String> entry : dataReport3_4.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
@@ -286,7 +293,7 @@ public static boolean getDateRange() throws ParseException{
         }
         System.out.println("Data Map:   " + dataReport3_4);
         outputFileWriter.flush();
-        totalUpdatedByAllUser=null;
+        totalUpdatedByAllUser = null;
     }
 
     public static String dbScan(String json, String surl, String username, String password) throws Exception {
